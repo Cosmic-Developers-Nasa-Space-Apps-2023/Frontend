@@ -1,8 +1,7 @@
 #!/bin/bash
-FROM node:17-alpine
+FROM --platform=linux/amd64 node:17-alpine
 WORKDIR /app
 COPY . .
-RUN npm install --force
 EXPOSE 3000
-RUN chmod +x ./package.json
+RUN npm install --force
 CMD ["npm", "run", "dev"]
