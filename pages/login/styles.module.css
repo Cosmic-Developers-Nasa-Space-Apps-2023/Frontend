@@ -1,0 +1,17 @@
+.margin_left{
+  margin-left: 20px
+}
+
+.oauth{
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.alter {
+  margin-top: 20px;
+  text-align: center;
+}
