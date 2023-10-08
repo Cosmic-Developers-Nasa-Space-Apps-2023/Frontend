@@ -125,7 +125,7 @@ export default function UserProfilePage() {
   const defaultTheme = createTheme();
 
   const [userProfile, setUserProfile] = useState<UserProfile>({
-    username: 'johndoe',
+    username: 'John Doe',
     first_name: 'John',
     last_name: 'Doe',
     email: 'johndoe@gmail.com',
