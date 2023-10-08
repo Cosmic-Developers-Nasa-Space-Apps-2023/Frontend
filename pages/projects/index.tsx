@@ -141,9 +141,6 @@ export default function UserProfilePage() {
             //TODO implement logout
             window.location.href = '/login';
             break;
-          case 'Joining Requests':
-            window.location.href = '/joining-requests';
-            break;
           default:
             window.location.href = '/profile';
         }
@@ -236,7 +233,7 @@ export default function UserProfilePage() {
         </DrawerHeader>
         <Divider />
         <List>
-          {['Projects', 'Profile', 'Logout', 'Joining Requests'].map((text, index) => (
+          {['Projects', 'Profile', 'Logout'].map((text, index) => (
             <ListItem key={text} disablePadding>
               <ListItemButton onClick={() => handleListItemClick(text)}>
                 <ListItemText primary={text} />
@@ -282,7 +279,7 @@ export default function UserProfilePage() {
             <Typography variant="h5" component="div">
             {project.title}
             </Typography>
-            <Chip label={project.desired_skills} />
+            {project.desired_skills}
             <Typography sx={{ mb: 1.5 }} color="text.secondary">
             {project.field}
             </Typography>
@@ -313,20 +310,6 @@ export default function UserProfilePage() {
                         <div style={{ display: 'flex', justifyContent: 'center' }}>
                         <Typography variant="button" style={{ fontSize: '0.69rem'}}>
                           Send the project owner an email
-                        </Typography>
-                        </div>
-                      </Button>
-                      <Button
-                        variant="contained"
-                        size="large"
-                        color="primary"
-                        target="_top"
-                        rel="noopener noreferrer"
-                        href='joining_requests'
-                        >
-                        <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        <Typography variant="button" style={{ fontSize: '0.69rem'}}>
-                          Request to join this project
                         </Typography>
                         </div>
                       </Button>

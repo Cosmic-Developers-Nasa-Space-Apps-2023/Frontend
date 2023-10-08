@@ -30,6 +30,13 @@ interface FormData {
   password: string;
   password_confirmation: string;
   preferred_language: string;
+  skills: string[];
+  experience: string;
+  country: string;
+  seeking_fields: string[];
+  working_availablity: Date;
+  default_summary: string;
+  is_public: boolean;
 }
 
 // TODO remove, this demo shouldn't need to reset the theme.
@@ -63,7 +70,13 @@ const handleDateChange = (newDate: any) => {
       password: data.get('password') as string,
       password_confirmation: data.get('password') as string,
       preferred_laguage: 'en',
-      
+      /*skills: selectedSkills,
+      experience: data.get('experience') as string,
+      country: selectedCountry,
+      seeking_fields: selectedSeekingFields,
+      working_availablity: selectedDate,
+      default_summary: data.get('default_summary') as string,
+      is_public: data.get('is_public') === 'on'*/
     };
   
     try {
@@ -271,7 +284,7 @@ const handleDateChange = (newDate: any) => {
                 <Link href="login" variant="body2">
                   Already have an account? Sign in
                 </Link>
-            </Grid>
+              </Grid>
             </Grid>
           </Box>
         </Box>

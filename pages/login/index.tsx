@@ -30,13 +30,35 @@ function Copyright(props: any) {
 const defaultTheme = createTheme();
 
 export default function SignIn() {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
+
+    const formData = {
       email: data.get('email'),
       password: data.get('password'),
-    });
+    };
+
+    try {
+      const response = await fetch('http://api.opencommunity.work/api/auth/login/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', 
+        },
+        body: JSON.stringify(formData),
+      });
+    
+      if (response.ok) {
+        const userData = await response.json();
+        setUserId(userData.id);
+        window.location.href = '/projects';
+      } else {
+        console.error('Error in sign up:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error when sending the request:', error);
+    }    
   };
 
   return (
@@ -83,7 +105,6 @@ export default function SignIn() {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              href='projects'
             >
               Sign In
             </Button>

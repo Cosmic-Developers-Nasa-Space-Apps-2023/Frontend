@@ -9,8 +9,7 @@ import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { Autocomplete } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { styled, useTheme } from '@mui/material/styles';
 import Drawer from '@mui/material/Drawer';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
@@ -24,20 +23,17 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
+import { Checkbox, FormControlLabel } from '@mui/material';
+import { UserProvider } from '../../context/userContext'; 
+import { useUser } from '../../context/userContext';
 
 const drawerWidth = 240;
 
 interface UserProfile {
     username: string;
-    firstName: string;
-    lastName: string;
+    first_name: string;
+    last_name: string;
     email: string;
-    skills: string[];
-    experience: string;
-    country: string;
-    seeking_fields: string[];
-    working_availability: Date;
-    default_summary: string;
     is_public: boolean;
 }
 
@@ -45,32 +41,12 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
   event.preventDefault();
   const data = new FormData(event.currentTarget);
 
-  const [countries, setCountries] = useState([]);
-
-  const [selectedDate, setSelectedDate] = useState(null);
-
-  const [selectedSkills, setSelectedSkills] = useState<{ title: string }[]>([]);
-
-  const [selectedSeekingFields, setSelectedSeekingFields] = useState<{ title: string }[]>([]);
-
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
-
-  const handleDateChange = (newDate: any) => {
-    setSelectedDate(newDate);
-};
-
   const formData = {
-    firstName: data.get('firstName') as string,
-    lastName: data.get('lastName') as string,
+    first_name: data.get('firstName') as string,
+    last_name: data.get('lastName') as string,
     username: data.get('username')as string,
     email: data.get('email') as string,
     password: data.get('password') as string,
-    skills: selectedSkills,
-    experience: data.get('experience') as string,
-    country: selectedCountry,
-    seeking_fields: selectedSeekingFields,
-    working_availablity: selectedDate,
-    default_summary: data.get('default_summary') as string,
     is_public: data.get('is_public') === 'on'
   };
 
@@ -84,12 +60,12 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     });
 
     if (response.ok) {
-      console.log('Sign up successful');
+      console.log('Updated data');
     } else {
-      console.error('Error in sign up:', response.statusText);
+      console.error('Error updating data', response.statusText);
     }
   } catch (error) {
-    console.error('Error when sending the request:', error);
+    console.error('Error when updating', error);
   }
 };
 
@@ -149,29 +125,62 @@ export default function UserProfilePage() {
   const defaultTheme = createTheme();
 
   const [userProfile, setUserProfile] = useState<UserProfile>({
-    username: 'johndoe',
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'johndoe@example.com',
-    skills: ['React', 'TypeScript', 'JavaScript'],
-    experience: '7 yers',
-    country: 'United States',
-    seeking_fields: ['Frontend', 'Backend'],
-    working_availability: new Date(),
-    default_summary: 'I am a software engineer',
-    is_public: true,
+    username: 'username',
+    first_name: 'first_name',
+    last_name: 'last_name',
+    email: 'email',
+    is_public: false
   });
 
+  useEffect(() => {
+    fetch(`http://api.opencommunity.work/api/users/`, {
+      method: 'GET',
+      headers: {
+      },
+    })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then((data) => {
+      setUserProfile(data);
+    })
+    .catch((error) => {
+      console.error('Fetch error:', error);
+    });
+  }, []);
+
+  
   const handleEditClick = () => {
     setIsEditing(!isEditing);
   };
 
-  const handleSaveClick = () => {
-    // Aquí puedes realizar una solicitud HTTP para guardar los cambios
-    // Utilizar userProfile para obtener los nuevos valores
-    console.log('Guardando cambios:', userProfile);
-    setIsEditing(false);
+  const handleSaveClick = async () => {
+    if (isEditing) {
+      try {
+        const response = await fetch('URL_DE_TU_API', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(userProfile),
+        });
+  
+        if (response.ok) {
+          console.log('Cambios guardados con éxito');
+          setIsEditing(false);
+          console.error('Error al guardar cambios:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error al guardar cambios:', error);
+      }
+    } else {
+      setIsEditing(true); // Activa el modo de edición si no estaba activo
+    }
   };
+  
 
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -192,40 +201,6 @@ export default function UserProfilePage() {
       setOpen(false);
     };
 
-    useEffect(() => {
-      fetch('https://restcountries.com/v3.1/all')
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then((data) => {
-          const countryNames = data.map((country: { name: { common: any; }; }) => country.name.common);
-          setCountries(countryNames);
-        })
-        .catch((error) => {
-          console.error('Fetch error:', error);
-        });
-    }, []); 
-
-    useEffect(() => {
-      fetch('URL_GET_SERVER')
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then((data) => {
-          const userInformation = data.map((userInformation: { name: { common: any; }; }) => country.name.common);
-          setCountries(userInformation);
-        })
-        .catch((error) => {
-          console.error('Fetch error:', error);
-        });
-    }, []); 
-
     const handleListItemClick = (text: string) => {
         switch (text) {
           case 'Projects':
@@ -239,15 +214,13 @@ export default function UserProfilePage() {
             //TODO implement logout
             window.location.href = '/login';
             break;
-          case 'Joining Requests':
-            window.location.href = '/joining-requests';
-            break;
           default:
             window.location.href = '/profile';
         }
       };
 
   return (
+    <UserProvider>
     <Box sx={{ display: 'flex' }}>
       <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}></Box>
       <CssBaseline />
@@ -287,7 +260,7 @@ export default function UserProfilePage() {
         </DrawerHeader>
         <Divider />
         <List>
-          {['Projects', 'Profile', 'Logout', 'Joining Requests'].map((text, index) => (
+          {['Projects', 'Profile', 'Logout'].map((text, index) => (
             <ListItem key={text} disablePadding>
               <ListItemButton onClick={() => handleListItemClick(text)}>
                 <ListItemText primary={text} />
@@ -321,7 +294,7 @@ export default function UserProfilePage() {
                 <TextField
                 label="First Name"
                 name="firstName"
-                value={userProfile.firstName}
+                value={userProfile.first_name}
                 onChange={handleFieldChange}
                 fullWidth
                 variant={isEditing ? 'outlined' : 'standard'}
@@ -332,7 +305,7 @@ export default function UserProfilePage() {
                 <TextField
                 label="Last Name"
                 name="lastName"
-                value={userProfile.lastName}
+                value={userProfile.last_name}
                 onChange={handleFieldChange}
                 fullWidth
                 variant={isEditing ? 'outlined' : 'standard'}
@@ -350,84 +323,18 @@ export default function UserProfilePage() {
                 InputProps={{ readOnly: !isEditing }}
                 />
             </Grid>
-            <Grid item xs={12}>
-                <Autocomplete
-                multiple
-                id="skills"
-                options={userProfile.skills}
-                getOptionLabel={(option) => option}
-                defaultValue={userProfile.skills}
-                readOnly = {!isEditing}
-                renderInput={(params) => (
-                    <TextField
-                    {...params}
-                    variant="standard"
-                    label="Skills"
-                    />
-                )}
+            <FormControlLabel
+              required
+              control={
+                <Checkbox
+                  name="is_public"
+                  color="primary"
+                  checked={userProfile.is_public} // Establece el estado del checkbox basado en userProfile
+                  disabled={!isEditing} // Deshabilita el checkbox cuando no se está editando
                 />
-            </Grid>
-            <Grid item xs={12}>
-                <TextField
-                label="Experience"
-                name="experience"
-                value={userProfile.experience}
-                onChange={handleFieldChange}
-                fullWidth
-                variant={isEditing ? 'outlined' : 'standard'}
-                InputProps={{ readOnly: !isEditing }}
-                />
-            </Grid>
-            <Grid item xs={12}>
-                <TextField
-                label="Country"
-                name="country"
-                value={userProfile.country}
-                onChange={handleFieldChange}
-                fullWidth
-                variant={isEditing ? 'outlined' : 'standard'}
-                InputProps={{ readOnly: !isEditing }}
-                />
-            </Grid>
-            <Grid item xs={12}>
-                <Autocomplete
-                multiple
-                id="seeking_fields"
-                options={userProfile.seeking_fields}
-                getOptionLabel={(option) => option}
-                defaultValue={userProfile.seeking_fields}
-                readOnly = {!isEditing}
-                renderInput={(params) => (
-                    <TextField
-                    {...params}
-                    variant="standard"
-                    label="Seeking fields"
-                    />
-                )}
-                />
-            </Grid>
-            <Grid item xs={12}>
-                <TextField
-                label="Working Availability"
-                name="working_availability"
-                value={userProfile.working_availability.toDateString()}
-                onChange={handleFieldChange}
-                fullWidth
-                variant={isEditing ? 'outlined' : 'standard'}
-                InputProps={{ readOnly: !isEditing }}
-                />
-            </Grid>
-            <Grid item xs={12}>
-                <TextField
-                label="Default Summary"
-                name="default_summary"
-                value={userProfile.default_summary}
-                onChange={handleFieldChange}
-                fullWidth
-                multiline
-                variant={isEditing ? 'outlined' : 'standard'}
-                InputProps={{ readOnly: !isEditing }}
-                />
+              }
+              label="Check this box if you want your profile to be public"
+            />
             {isEditing ? (
                 <Button onClick={handleSaveClick} fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
                 Save
@@ -438,12 +345,12 @@ export default function UserProfilePage() {
                 </Button>
             )}
         </Grid>
-        </Grid>
         </Box>
       </Container>
     </ThemeProvider>
     </Main>
     </Box>
+    </UserProvider>
   );
 }
 
