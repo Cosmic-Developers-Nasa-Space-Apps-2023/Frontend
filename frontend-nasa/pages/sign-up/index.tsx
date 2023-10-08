@@ -17,33 +17,81 @@ import { useEffect, useState } from 'react';
 import skills from './skills.json';
 import fields from './fields.json';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { DateCalendar } from '@mui/x-date-pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 
-function Copyright(props: any) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
+interface FormData {
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  password: string;
+  skills: string[];
+  experience: string;
+  country: string;
+  seeking_fields: string[];
+  working_availablity: Date;
+  default_summary: string;
+  is_public: boolean;
 }
 
 // TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
 export default function SignUp() {
-  const [countries, setCountries] = useState([]);
+
+const [countries, setCountries] = useState([]);
+
+const [selectedDate, setSelectedDate] = useState(null);
+
+const [selectedSkills, setSelectedSkills] = useState<{ title: string }[]>([]);
+
+const [selectedSeekingFields, setSelectedSeekingFields] = useState<{ title: string }[]>([]);
+
+const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+
+const handleDateChange = (newDate: any) => {
+  setSelectedDate(newDate);
+};
   
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+  
+    const formData = {
+      firstName: data.get('firstName') as string,
+      lastName: data.get('lastName') as string,
+      username: data.get('username')as string,
+      email: data.get('email') as string,
+      password: data.get('password') as string,
+      skills: selectedSkills,
+      experience: data.get('experience') as string,
+      country: selectedCountry,
+      seeking_fields: selectedSeekingFields,
+      working_availablity: selectedDate,
+      default_summary: data.get('default_summary') as string,
+      is_public: data.get('is_public') === 'on'
+    };
+  
+    try {
+      const response = await fetch('URL_DEL_SERVIDOR', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', 
+        },
+        body: JSON.stringify(formData),
+      });
+  
+      if (response.ok) {
+        console.log('Sign up successful');
+      } else {
+        console.error('Error in sign up:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error when sending the request:', error);
+    }
   };
 
   useEffect(() => {
@@ -55,14 +103,13 @@ export default function SignUp() {
         return response.json();
       })
       .then((data) => {
-        // Extrae los nombres de los países de la respuesta y almacénalos en una matriz
         const countryNames = data.map((country: { name: { common: any; }; }) => country.name.common);
-        setCountries(countryNames); // Actualiza la variable de estado con la matriz de nombres
+        setCountries(countryNames);
       })
       .catch((error) => {
         console.error('Fetch error:', error);
       });
-  }, []); // El segundo argumento [] asegura que se ejecute solo una vez al montar el componente
+  }, []); 
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -141,6 +188,8 @@ export default function SignUp() {
               id="skills"
               options={skills.items}
               getOptionLabel={(option) => option.title}
+              value={selectedSkills}
+              onChange={(event, newValue) => setSelectedSkills(newValue)}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -164,7 +213,9 @@ export default function SignUp() {
             <Autocomplete
               disablePortal
               id="country"
-              options={countries} // Utiliza la matriz de nombres de países como opciones
+              options={countries}
+              value={selectedCountry}
+              onChange={(event, newValue) => setSelectedCountry(newValue)}
               renderInput={(params) => <TextField {...params} label="Country" />}
             />
             </Grid>
@@ -174,6 +225,8 @@ export default function SignUp() {
               id="seeking_fields"
               options={fields.items}
               getOptionLabel={(option) => option.title}
+              value={selectedSeekingFields}
+              onChange={(event, newValue) => setSelectedSeekingFields(newValue)}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -185,13 +238,15 @@ export default function SignUp() {
             />
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                name="working_availablity"
-                label="Working Availability"
-                id="working_availablity"
+              <Typography>
+                Working availability
+              </Typography>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                value={selectedDate}
+                onChange={(newDate) => handleDateChange(newDate)}
               />
+              </LocalizationProvider>
             </Grid>
             <Grid item xs={12}>
               <TextField
@@ -229,7 +284,6 @@ export default function SignUp() {
             </Grid>
           </Box>
         </Box>
-        <Copyright sx={{ mt: 5 }} />
       </Container>
     </ThemeProvider>
   );

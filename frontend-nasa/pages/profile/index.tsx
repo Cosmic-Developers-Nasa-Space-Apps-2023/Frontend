@@ -41,6 +41,59 @@ interface UserProfile {
     is_public: boolean;
 }
 
+const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+  const data = new FormData(event.currentTarget);
+
+  const [countries, setCountries] = useState([]);
+
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  const [selectedSkills, setSelectedSkills] = useState<{ title: string }[]>([]);
+
+  const [selectedSeekingFields, setSelectedSeekingFields] = useState<{ title: string }[]>([]);
+
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+
+  const handleDateChange = (newDate: any) => {
+    setSelectedDate(newDate);
+};
+
+  const formData = {
+    firstName: data.get('firstName') as string,
+    lastName: data.get('lastName') as string,
+    username: data.get('username')as string,
+    email: data.get('email') as string,
+    password: data.get('password') as string,
+    skills: selectedSkills,
+    experience: data.get('experience') as string,
+    country: selectedCountry,
+    seeking_fields: selectedSeekingFields,
+    working_availablity: selectedDate,
+    default_summary: data.get('default_summary') as string,
+    is_public: data.get('is_public') === 'on'
+  };
+
+  try {
+    const response = await fetch('URL_DEL_SERVIDOR', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json', 
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (response.ok) {
+      console.log('Sign up successful');
+    } else {
+      console.error('Error in sign up:', response.statusText);
+    }
+  } catch (error) {
+    console.error('Error when sending the request:', error);
+  }
+};
+
+
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{
     open?: boolean;
   }>(({ theme, open }) => ({
@@ -70,7 +123,7 @@ const AppBar = styled(MuiAppBar, {
     transition: theme.transitions.create(['margin', 'width'], {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
-    }),
+}),
     ...(open && {
       width: `calc(100% - ${drawerWidth}px)`,
       marginLeft: `${drawerWidth}px`,
@@ -79,24 +132,23 @@ const AppBar = styled(MuiAppBar, {
         duration: theme.transitions.duration.enteringScreen,
       }),
     }),
-}));
+  }));
   
-const DrawerHeader = styled('div')(({ theme }) => ({
+  const DrawerHeader = styled('div')(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
     padding: theme.spacing(0, 1),
     // necessary for content to be below app bar
     ...theme.mixins.toolbar,
     justifyContent: 'flex-end',
-})); 
+  })); 
 
 export default function UserProfilePage() {
+  const [isEditing, setIsEditing] = useState(false);
 
-const [isEditing, setIsEditing] = useState(false);
+  const defaultTheme = createTheme();
 
-const defaultTheme = createTheme();
-
-const [userProfile, setUserProfile] = useState<UserProfile>({
+  const [userProfile, setUserProfile] = useState<UserProfile>({
     username: 'johndoe',
     firstName: 'John',
     lastName: 'Doe',
@@ -108,62 +160,96 @@ const [userProfile, setUserProfile] = useState<UserProfile>({
     working_availability: new Date(),
     default_summary: 'I am a software engineer',
     is_public: true,
-});
+  });
 
-const handleEditClick = () => {
+  const handleEditClick = () => {
     setIsEditing(!isEditing);
-};
+  };
 
-const handleSaveClick = () => {
+  const handleSaveClick = () => {
     // Aquí puedes realizar una solicitud HTTP para guardar los cambios
     // Utilizar userProfile para obtener los nuevos valores
     console.log('Guardando cambios:', userProfile);
     setIsEditing(false);
-};
+  };
 
-const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setUserProfile((prevProfile) => ({
-        ...prevProfile,
-        [name]: value,
+      ...prevProfile,
+      [name]: value,
     }));
-};
+  };
 
-const theme = useTheme();
-
-const [open, setOpen] = React.useState(false);
+  const theme = useTheme();
+    const [open, setOpen] = React.useState(false);
   
-const handleDrawerOpen = () => {
-    setOpen(true);
-};
+    const handleDrawerOpen = () => {
+      setOpen(true);
+    };
   
-const handleDrawerClose = () => {
-    setOpen(false);
-};
+    const handleDrawerClose = () => {
+      setOpen(false);
+    };
 
-const handleListItemClick = (text: string) => {
-    switch (text) {
-        case 'Projects':
-        window.location.href = '/projects';
-        break;
-        case 'Profile':
-        window.location.href = '/profile';
-        break;
-        case 'Logout':
-        // Realiza acciones específicas para Logout
-        //TODO implement logout
-        window.location.href = '/login';
-        break;
-        case 'Joining Requests':
-        window.location.href = '/joining-requests';
-        break;
-        default:
-        window.location.href = '/profile';
-    }
-};
+    useEffect(() => {
+      fetch('https://restcountries.com/v3.1/all')
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then((data) => {
+          const countryNames = data.map((country: { name: { common: any; }; }) => country.name.common);
+          setCountries(countryNames);
+        })
+        .catch((error) => {
+          console.error('Fetch error:', error);
+        });
+    }, []); 
+
+    useEffect(() => {
+      fetch('URL_GET_SERVER')
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then((data) => {
+          const userInformation = data.map((userInformation: { name: { common: any; }; }) => country.name.common);
+          setCountries(userInformation);
+        })
+        .catch((error) => {
+          console.error('Fetch error:', error);
+        });
+    }, []); 
+
+    const handleListItemClick = (text: string) => {
+        switch (text) {
+          case 'Projects':
+            window.location.href = '/projects';
+            break;
+          case 'Profile':
+            window.location.href = '/profile';
+            break;
+          case 'Logout':
+            // Realiza acciones específicas para Logout
+            //TODO implement logout
+            window.location.href = '/login';
+            break;
+          case 'Joining Requests':
+            window.location.href = '/joining-requests';
+            break;
+          default:
+            window.location.href = '/profile';
+        }
+      };
 
   return (
     <Box sx={{ display: 'flex' }}>
+      <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}></Box>
       <CssBaseline />
       <AppBar position="fixed" open={open}>
         <Toolbar>
@@ -207,23 +293,23 @@ const handleListItemClick = (text: string) => {
                 <ListItemText primary={text} />
               </ListItemButton>
             </ListItem>
-            ))}
-            </List>
-            <Divider />
-        </Drawer>
-        <Main open={open}>
+          ))}
+        </List>
+        <Divider />
+      </Drawer>
+      <Main open={open}>
         <DrawerHeader />
-        <ThemeProvider theme={defaultTheme}>
-            <Container component="main" maxWidth="xs">
-            <CssBaseline />
-            <Box
-                sx={{
-                marginTop: 8,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                }}
-            >
+    <ThemeProvider theme={defaultTheme}>
+      <Container component="main" maxWidth="xs">
+        <CssBaseline />
+        <Box
+          sx={{
+            marginTop: 8,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
           <Avatar sx={{ m: 1, bgcolor: 'secondary.main'}}>
             <AccountBoxIcon />
           </Avatar>
