@@ -51,7 +51,6 @@ export default function SignIn() {
     
       if (response.ok) {
         const userData = await response.json();
-        setUserId(userData.id);
         window.location.href = '/projects';
       } else {
         console.error('Error in sign up:', response.statusText);
