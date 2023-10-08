@@ -58,7 +58,6 @@ const handleDateChange = (newDate: any) => {
     const formData = {
       first_name: data.get('firstName') as string,
       last_name: data.get('lastName') as string,
-      username: data.get('username')as string,
       email: data.get('email') as string,
       password: data.get('password') as string,
       password_confirmation: data.get('password') as string,
@@ -67,6 +66,14 @@ const handleDateChange = (newDate: any) => {
     };
   
     try {
+      if (formData.password.length < 8) {
+        alert('Password must be at least 8 characters long');
+        return;
+      }
+      if (Number(formData.password)) {
+        alert('Password must contain at least one letter');
+        return;
+      }
       const response = await fetch('http://api.opencommunity.work/api/auth/signup/', {
         method: 'POST',
         headers: {
@@ -77,30 +84,15 @@ const handleDateChange = (newDate: any) => {
   
       if (response.ok) {
         console.log('Sign up successful');
+        window.location.href = '/projects';
       } else {
         console.error('Error in sign up:', response.statusText);
+        alert(`Error in sign up ${response}`);
       }
     } catch (error) {
       console.error('Error when sending the request:', error);
     }
   };
-
-  useEffect(() => {
-    fetch('https://restcountries.com/v3.1/all')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then((data) => {
-        const countryNames = data.map((country: { name: { common: any; }; }) => country.name.common);
-        setCountries(countryNames);
-      })
-      .catch((error) => {
-        console.error('Fetch error:', error);
-      });
-  }, []); 
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -144,15 +136,6 @@ const handleDateChange = (newDate: any) => {
                 />
               </Grid>
               <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                name="username"
-                label="Username"
-                id="username"
-              />
-            </Grid>
-              <Grid item xs={12}>
                 <TextField
                   required
                   fullWidth
@@ -173,90 +156,6 @@ const handleDateChange = (newDate: any) => {
                   autoComplete="new-password"
                 />
               </Grid>
-            <Grid item xs={12}>
-            <Autocomplete
-              multiple
-              id="skills"
-              options={skills.items}
-              getOptionLabel={(option) => option.title}
-              value={selectedSkills}
-              onChange={(event, newValue) => setSelectedSkills(newValue)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  variant="standard"
-                  label="Skills"
-                  placeholder="Skills"
-                />
-              )}
-            />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                name="experience"
-                label="Working experience (in years)"
-                id="experience"
-              />
-            </Grid>
-            <Grid item xs={12}>
-            <Autocomplete
-              disablePortal
-              id="country"
-              options={countries}
-              value={selectedCountry}
-              onChange={(event, newValue) => setSelectedCountry(newValue)}
-              renderInput={(params) => <TextField {...params} label="Country" />}
-            />
-            </Grid>
-            <Grid item xs={12}>
-            <Autocomplete
-              multiple
-              id="seeking_fields"
-              options={fields.items}
-              getOptionLabel={(option) => option.title}
-              value={selectedSeekingFields}
-              onChange={(event, newValue) => setSelectedSeekingFields(newValue)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  variant="standard"
-                  label="Seeking fields"
-                  placeholder="Seeking fields"
-                />
-              )}
-            />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography>
-                Working availability
-              </Typography>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                value={selectedDate}
-                onChange={(newDate) => handleDateChange(newDate)}
-              />
-              </LocalizationProvider>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                required
-                multiline
-                fullWidth
-                rows={5}
-                name="default_summary"
-                label="Default Summary"
-                id="default_summary"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControlLabel
-                required
-                control={<Checkbox name="is_public" color="primary" />}
-                label="Check this box if you want your profile to be public"
-              />
-            </Grid>
             </Grid>
             <Button
               type="submit"
